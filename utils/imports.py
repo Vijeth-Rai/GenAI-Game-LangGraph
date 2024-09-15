@@ -8,5 +8,6 @@ from langchain_core.messages import BaseMessage, RemoveMessage, SystemMessage
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
+from langchain_core.runnables import ConfigurableField
 
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, Literal, TypedDict, List

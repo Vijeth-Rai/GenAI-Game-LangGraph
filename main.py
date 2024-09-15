@@ -1,5 +1,7 @@
-from agents.chatbot import setup_graph
+from agents.graph import *
 from utils.imports import *
+config = {"configurable": {"thread_id": 1, "checkpointer_id": 1}}
+
 
 def main():
     graph = setup_graph()
@@ -9,11 +11,14 @@ def main():
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Goodbye!")
             break
-
-        for event in graph.stream({"messages": [HumanMessage(content=user_input)]}):
-            for value in event.values():
-                if isinstance(value["messages"][-1], BaseMessage):
-                    print("Assistant:", value["messages"][-1].content)
+        
+        for event in graph.stream({"messages": [HumanMessage(content=user_input)]}, stream_mode="values"):
+            if "messages" in event and not isinstance(event["messages"][-1], HumanMessage):
+                print("Assistant:", event["messages"][-1].content)
+            if "short_memory" in event:
+                print("Short Memory:", event["short_memory"])
+            if "long_memory" in event:
+                print("Long Memory:", event["long_memory"])
 
 if __name__ == "__main__":
     main()

@@ -16,4 +16,4 @@ collection_name = os.getenv("COLLECTION_NAME")
 client = MongoClient(mongo_uri)
 db = client[database_name]
 collection = db[collection_name]
-
+collection_checkpoint = db["Checkpoints"]
