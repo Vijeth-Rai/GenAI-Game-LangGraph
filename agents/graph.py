@@ -14,7 +14,7 @@ def should_continue(state: MessagesState) -> Literal["tools", END]: # type: igno
 
 def setup_graph():
     
-    tools = [load_checkpoint, save_checkpoint, get_weather]
+    tools = [load_checkpoint, save_checkpoint, end_convo]
     tool_node = ToolNode(tools)
     llm_with_tools = llm.bind_tools(tools)
 
