@@ -12,6 +12,7 @@ llm = ChatGroq(
 mongo_uri = os.getenv("MONGO_URI")
 database_name = os.getenv("DATABASE_NAME")
 collection_name = os.getenv("COLLECTION_NAME")
+host = os.getenv("HOST")
 
 client = MongoClient(mongo_uri)
 db = client[database_name]

@@ -17,6 +17,8 @@ class StateSaver:
         self.state = state
         self.put()
         
+
+
     def test(self):
         print("test success")
 
@@ -50,6 +52,20 @@ class StateSaver:
         else:
             self.collection.insert_one(checkpoint_data)
         
+        return checkpoint_data
+    
+    def _load_checkpoint(self) -> AgentState:
+        """Load a checkpoint by its ID."""
+        checkpoint = self.collection.find_one({"checkpoint_id": "latest"})
+        if checkpoint:
+            return AgentState(
+                messages=[BaseMessage(content=msg) for msg in checkpoint["messages"]],
+                short_memory=checkpoint["short_memory"],
+                long_memory=checkpoint["long_memory"]
+            )
+        else:
+            print("No checkpoint data found. Please create one.")
+
     def _create_short_memory(self, messages: List[BaseMessage]) -> str:
         summary_prompt = f"Note down important details from the conversation below:\n\n{messages}"
         response = self.llm.invoke(summary_prompt).content
