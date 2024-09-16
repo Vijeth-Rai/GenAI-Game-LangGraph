@@ -17,7 +17,7 @@ def main():
                 print("Goodbye!")
                 break
 
-            res = graph.stream({"messages": [("human", user_input)]}, config, stream_mode="updates")
+            res = graph.stream({"messages": [("human", user_input)]}, config, stream_mode="values")
             if 'messages' in res:
                 for message in res['messages']:
                     if isinstance(message, tuple) and message[0] == 'assistant':

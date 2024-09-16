@@ -3,7 +3,7 @@ from agents.MemoryAgent import StateSaver
 from langgraph.prebuilt import ToolNode
 
 
-def should_continue(state: MessagesState) -> Literal["tools", END]:
+def should_continue(state: MessagesState) -> Literal["tools", END]: # type: ignore
     messages = state['messages']
     last_message = messages[-1]
     if last_message.tool_calls:
