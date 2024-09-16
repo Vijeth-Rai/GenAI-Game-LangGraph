@@ -14,6 +14,7 @@ from langgraph.checkpoint.base import (
     CheckpointTuple,
     get_checkpoint_id,
 )
+from agents.tools import *
 
 
 class MongoDBSaver(BaseCheckpointSaver):
@@ -22,8 +23,9 @@ class MongoDBSaver(BaseCheckpointSaver):
     client: MongoClient
     db: MongoDatabase
 
-    def __init__(self,client: MongoClient,db_name: str,) -> None:
+    def __init__(self,client: MongoClient,db_name: str) -> None:
         super().__init__()
+        self.llm = llm
         self.client = client
         self.db = self.client[db_name]
 
@@ -88,11 +90,8 @@ class MongoDBSaver(BaseCheckpointSaver):
 
         # Convert the dictionary back to a list, sorted by original order
         all_messages = formatted_old_messages + formatted_new_messages
-
-        update_doc = {
-            "thread_id": thread_id,
-            "messages": all_messages,
-        }
+        update_doc = self._decide(all_messages, thread_id, current_doc)
+        
 
         # Use upsert to either update the existing document or create a new one if it does not exist
         self.db["checkpoints"].update_one({"thread_id": thread_id}, {"$set": update_doc}, upsert=True)
@@ -104,7 +103,32 @@ class MongoDBSaver(BaseCheckpointSaver):
         }
 
 
+        
+    def _decide(self, messages, thread_id, current_doc):
+        max_messages = 4
+        return_data = {}
+        return_data["thread_id"] = thread_id
+        return_data["messages"] = messages
+        if len(messages) > max_messages:
+            return_data["long_memory"] = current_doc.get("long_memory", "")
+            return_data["short_memory"] = self._create_short_memory(messages[-max_messages:])
+            return_data["long_memory"] = self._update_long_memory(return_data["short_memory"], return_data["long_memory"])
+            return_data["messages"] = return_data["messages"][-1:]
+        
+        return return_data
 
+    
+    def _create_short_memory(self, messages) -> str:
+        summary_prompt = f"Note down important details from the conversation below:\n\n{messages}"
+        response = self.llm.invoke(summary_prompt).content
+        print("Short memory created successfully.")
+        return response
+
+    def _update_long_memory(self, short_memory: str, long_memory: str) -> str:
+        update_prompt = f"Current long-term memory: {long_memory}\n\nNew information: {short_memory}\n\nUpdate the long-term memory to include the new information concisely."
+        response = self.llm.invoke(update_prompt).content
+        print("Long memory updated successfully.")
+        return response
 
     def put_writes(self, config: RunnableConfig, writes: Sequence[Tuple[str, Any]], task_id: str,) -> None:
         pass
