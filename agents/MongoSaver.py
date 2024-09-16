@@ -22,20 +22,14 @@ class MongoDBSaver(BaseCheckpointSaver):
     client: MongoClient
     db: MongoDatabase
 
-    def __init__(
-        self,
-        client: MongoClient,
-        db_name: str,
-    ) -> None:
+    def __init__(self,client: MongoClient,db_name: str,) -> None:
         super().__init__()
         self.client = client
         self.db = self.client[db_name]
 
     @classmethod
     @contextmanager
-    def from_conn_info(
-        cls, *, host: str, port: int, db_name: str
-    ) -> Iterator["MongoDBSaver"]:
+    def from_conn_info(cls, *, host: str, port: int, db_name: str) -> Iterator["MongoDBSaver"]:
         client = None
         try:
             client = MongoClient(host=host, port=port)
@@ -45,109 +39,16 @@ class MongoDBSaver(BaseCheckpointSaver):
                 client.close()
 
     def get_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
-        """Get a checkpoint tuple from the database.
+        pass
 
-        This method retrieves a checkpoint tuple from the MongoDB database based on the
-        provided config. If the config contains a "checkpoint_id" key, the checkpoint with
-        the matching thread ID and checkpoint ID is retrieved. Otherwise, the latest checkpoint
-        for the given thread ID is retrieved.
+    def list(self, config: Optional[RunnableConfig], *, filter: Optional[Dict[str, Any]] = None, before: Optional[RunnableConfig] = None, limit: Optional[int] = None) -> Iterator[CheckpointTuple]:
+        pass
 
-        Args:
-            config (RunnableConfig): The config to use for retrieving the checkpoint.
 
-        Returns:
-            Optional[CheckpointTuple]: The retrieved checkpoint tuple, or None if no matching checkpoint was found.
-        """
-        thread_id = config["configurable"]["thread_id"]
-        query = {"thread_id": thread_id}
 
-        doc = self.db["checkpoints"].find_one(query)
+    def put(self,config: RunnableConfig,checkpoint: Checkpoint,metadata: CheckpointMetadata,new_versions: ChannelVersions,) -> RunnableConfig:
         
-        if doc:
-            checkpoint = doc["messages"]
-            return CheckpointTuple(
-                {
-                    "configurable": {
-                        "thread_id": doc["thread_id"],
-                    }
-                },
-                checkpoint,
-            )
-        return None
-
-
-    def list(
-        self,
-        config: Optional[RunnableConfig],
-        *,
-        filter: Optional[Dict[str, Any]] = None,
-        before: Optional[RunnableConfig] = None,
-        limit: Optional[int] = None,
-    ) -> Iterator[CheckpointTuple]:
-        """List checkpoints from the database.
-
-        This method retrieves a list of checkpoint tuples from the MongoDB database based
-        on the provided config. The checkpoints are ordered by checkpoint ID in descending order (newest first).
-
-        Args:
-            config (RunnableConfig): The config to use for listing the checkpoints.
-            filter (Optional[Dict[str, Any]]): Additional filtering criteria for metadata. Defaults to None.
-            before (Optional[RunnableConfig]): If provided, only checkpoints before the specified checkpoint ID are returned. Defaults to None.
-            limit (Optional[int]): The maximum number of checkpoints to return. Defaults to None.
-
-        Yields:
-            Iterator[CheckpointTuple]: An iterator of checkpoint tuples.
-        """
-        query = {}
-        if config is not None:
-            query = {
-                "thread_id": config["configurable"]["thread_id"],
-                "checkpoint_ns": config["configurable"].get("checkpoint_ns", ""),
-            }
-
-
-        if before is not None:
-            query["checkpoint_id"] = {"$lt": before["configurable"]["checkpoint_id"]}
-
-        result = self.db["checkpoints"].find(query).sort("checkpoint_id", -1)
-
-        if limit is not None:
-            result = result.limit(limit)
-        for doc in result:
-            checkpoint = self.serde.loads_typed(doc["checkpoint"])
-            yield CheckpointTuple(
-                {
-                    "configurable": {
-                        "thread_id": doc["thread_id"],
-                        "checkpoint_ns": doc["checkpoint_ns"],
-                        "checkpoint_id": doc["checkpoint_id"],
-                    }
-                },
-                checkpoint,
-            )
-
-    def put(
-        self,
-        config: RunnableConfig,
-        checkpoint: Checkpoint,
-        metadata: CheckpointMetadata,
-        new_versions: ChannelVersions,
-    ) -> RunnableConfig:
-        """Save or update a checkpoint in the MongoDB database.
-
-        If a checkpoint with the same ID exists, it is updated; otherwise, a new checkpoint is created.
-
-        Args:
-            config (RunnableConfig): The configuration associated with the checkpoint.
-            checkpoint (Checkpoint): The checkpoint data to save or update.
-            metadata (CheckpointMetadata): Additional metadata associated with the checkpoint.
-            new_versions (ChannelVersions): New channel versions as of this write.
-
-        Returns:
-            RunnableConfig: Updated configuration after storing the checkpoint.
-        """
         thread_id = config["configurable"]["thread_id"]
-        
         new_messages = checkpoint.get('channel_values', {}).get('messages', [])
 
         message_type_map = {
@@ -205,19 +106,5 @@ class MongoDBSaver(BaseCheckpointSaver):
 
 
 
-    def put_writes(
-        self,
-        config: RunnableConfig,
-        writes: Sequence[Tuple[str, Any]],
-        task_id: str,
-    ) -> None:
-        """Store intermediate writes linked to a checkpoint.
-
-        This method saves intermediate writes associated with a checkpoint to the MongoDB database.
-
-        Args:
-            config (RunnableConfig): Configuration of the related checkpoint.
-            writes (Sequence[Tuple[str, Any]]): List of writes to store, each as (channel, value) pair.
-            task_id (str): Identifier for the task creating the writes.
-        """
+    def put_writes(self, config: RunnableConfig, writes: Sequence[Tuple[str, Any]], task_id: str,) -> None:
         pass

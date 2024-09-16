@@ -15,6 +15,6 @@ collection_name = os.getenv("COLLECTION_NAME")
 host = os.getenv("HOST")
 
 client = MongoClient(mongo_uri)
-db = client[database_name]
-collection = db[collection_name]
-collection_checkpoint = db["Checkpoints"]
+db = client["checkpoints"]
+collection = db["checkpoints"]
+
