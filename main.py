@@ -18,10 +18,9 @@ def main():
                 break
 
             res = graph.stream({"messages": [("human", user_input)]}, config, stream_mode="values")
-            if 'messages' in res:
-                for message in res['messages']:
-                    if isinstance(message, tuple) and message[0] == 'assistant':
-                        print("Assistant:", message[1])
+            for event in res:
+                if "messages" in event and not isinstance(event["messages"][-1], HumanMessage):
+                    print("Assistant: ", event["messages"][-1].content)
 
 
                 # if "messages" in event and not isinstance(event["messages"][-1], HumanMessage):

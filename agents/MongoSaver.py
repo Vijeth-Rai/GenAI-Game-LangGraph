@@ -68,7 +68,7 @@ class MongoDBSaver(BaseCheckpointSaver):
             formatted_new_messages.append(formatted_message)
 
 
-        #print("New messages", formatted_new_messages)
+        # print("New messages", formatted_new_messages)
         # Retrieve the current document
         current_doc = self.db["checkpoints"].find_one({"thread_id": thread_id})
 
@@ -92,10 +92,24 @@ class MongoDBSaver(BaseCheckpointSaver):
         all_messages = formatted_old_messages + formatted_new_messages
         update_doc = self._decide(all_messages, thread_id, current_doc)
         
-
+        try:
+            #print(update_doc["messages"][-2]["type"] )
+            if update_doc["messages"][-2]["type"] == "tool":
+                #print("True")
+                state = self.db["checkpoints"].find_one({"thread_id": "latest"})
+                if '_id' in state:
+                    del state['_id']
+                if 'thread_id' in state:
+                    del state['thread_id']
+                update_doc = state
+        except:
+            pass
+        
+            
         # Use upsert to either update the existing document or create a new one if it does not exist
         self.db["checkpoints"].update_one({"thread_id": thread_id}, {"$set": update_doc}, upsert=True)
 
+        
         return {
             "configurable": {
                 "thread_id": thread_id,
@@ -105,7 +119,7 @@ class MongoDBSaver(BaseCheckpointSaver):
 
         
     def _decide(self, messages, thread_id, current_doc):
-        max_messages = 4
+        max_messages = 10
         return_data = {}
         return_data["thread_id"] = thread_id
         return_data["messages"] = messages
