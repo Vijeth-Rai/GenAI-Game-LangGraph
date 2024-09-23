@@ -30,11 +30,10 @@ def load_checkpoint(query: str) -> AgentState:
         return "No checkpoint data found."
 
 @tool
-# make it so this cannot be used twice in a row
 def save_checkpoint(query: str) -> str:
     """Use this when user/human asks you to save checkpoint. Do not use this unless asked to."""
     checkpoint_save_from = collection.find_one({"thread_id": "1"})
-    checkpoint_save_from["messages"] = checkpoint_save_from["messages"][:-1]
+    checkpoint_save_from["messages"] = checkpoint_save_from["messages"][:-2]
     if checkpoint_save_from:
         # Remove the _id field from the document to be inserted
         if '_id' in checkpoint_save_from:

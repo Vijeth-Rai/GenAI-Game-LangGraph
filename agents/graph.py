@@ -6,25 +6,15 @@ from langgraph.prebuilt import ToolNode
 from utils.tools import load_checkpoint, save_checkpoint, end_convo
 from utils.agent_node import *
 
-def should_continue(state: MessagesState) -> Literal["tools", "Master", END]:
+def should_continue(state: MessagesState) -> Literal["tools", "Master"]:
     messages = state['messages']
     
     last_message = messages[-1]
-    last_last_message = messages[-2] if len(messages) > 1 else None
     
     if isinstance(last_message, AIMessage):
-        if last_message.type == "tool":
-            if last_last_message.type == "tool":
-                print("tool call used previously")
-                return END
+        if last_message.tool_calls:
             print("tool call used")
             return "tools"
-    
-    if len(messages) > 1:
-        if isinstance(last_last_message, AIMessage):
-            if last_last_message.tool_calls:
-                print("tool call used previously")
-                return END
    
     return "Master"
 

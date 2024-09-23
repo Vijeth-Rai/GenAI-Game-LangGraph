@@ -97,18 +97,18 @@ class MongoDBSaver(BaseCheckpointSaver):
         all_messages = formatted_old_messages + formatted_new_messages
         update_doc = self._decide(all_messages, thread_id, current_doc)
         
-        # try:
-        #     #print(update_doc["messages"][-2]["type"] )
-        #     if update_doc["messages"][-2]["type"] == "tool":
-        #         #print("True")
-        #         state = self.db["checkpoints"].find_one({"thread_id": "latest"})
-        #         if '_id' in state:
-        #             del state['_id']
-        #         if 'thread_id' in state:
-        #             del state['thread_id']
-        #         update_doc = state
-        # except:
-        #     pass
+        try:
+            #print(update_doc["messages"][-2]["type"] )
+            if update_doc["messages"][-2]["type"] == "tool":
+                #print("True")
+                state = self.db["checkpoints"].find_one({"thread_id": "latest"})
+                if '_id' in state:
+                    del state['_id']
+                if 'thread_id' in state:
+                    del state['thread_id']
+                update_doc = state
+        except:
+            pass
         
             
         # Use upsert to either update the existing document or create a new one if it does not exist

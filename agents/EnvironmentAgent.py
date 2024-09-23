@@ -37,7 +37,7 @@ class EnvironmentAgent:
         system_prompt = (
             "You are environment/place detector."
             "You are given a message from a Human and you will determine whether the response to the human message might involve an environment/place or not."
-            "If the response might involves an environment/place, respond only with the name of the environment/place. If the response does not involve an environment/place, respond only with False."
+            "If the response might involves an environment/place, respond True. If the response does not involve an environment/place, respond False."
             f"Below is the message:\n {message}"
         )
         status = self._setup_env_detector_chain(system_prompt, message)
@@ -63,20 +63,20 @@ class EnvironmentAgent:
         system_prompt = (
             "You are environment/place detector."
             "You are given a message from an AI and you will determine whether it involves an environment/place and its description or not."
-            "If the response might involves an environment/place, respond only with the name of the environment/place. If the response does not involve an environment/place, respond only with False."
+            "If the response might involves an environment/place, respond True. If the response does not involve an environment/place, respond False."
             f"Below is the message:\n {[message]}"
         )
         status = self._setup_env_detector_chain(system_prompt, message)
 
 
-        if status.name != "False":
-            description = self._get_env_description(message)
-            print("EnvironmentAgent: Line 69: description: ", description)
+        if status.is_detected == "True":
+            name, description = self._get_env_description(message)
+            print("EnvironmentAgent: Line 69: name, description: ", name, description)
             self.collection.update_one(
                 {"thread_id": self.thread_id},
-                {"$push": {"Environment": {"name": status.name, "description": description}}}
+                {"$push": {"Environment": {"name": name, "description": description}}}
             )
-            print(f"EnvironmentAgent: saved {status.name} to the database")
+            print(f"EnvironmentAgent: saved {name} to the database")
 
 
 
@@ -100,7 +100,7 @@ class EnvironmentAgent:
     def _get_env_description(self, message):
         system_prompt = (
             "You are environment/place description extractor."
-            "You are given a message from an AI and you will extract the description of the environment/place from the message."
+            "You are given a message from an AI and you will extract the name and description of the environment/place from the message."
             f"Below is the message:\n {[message]}"
         )
         prompt = ChatPromptTemplate.from_messages(
@@ -112,8 +112,11 @@ class EnvironmentAgent:
 
         env_description_chain = (
             prompt
-            | llm   
+            | self.llm.with_structured_output(EnvDescription) 
         )
 
-        return env_description_chain.invoke({"messages": [message]})
+        result = env_description_chain.invoke({"messages": [message]})
+
+        return result.name, result.description
+
         
