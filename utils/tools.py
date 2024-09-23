@@ -1,7 +1,6 @@
 from utils.imports import *
 from configs.ConfigStates import *
 from configs.ConfigEnv import *
-from agents.MemoryAgent import *
 
 config = {"configurable": {"thread_id": 1}}
 
@@ -31,6 +30,7 @@ def load_checkpoint(query: str) -> AgentState:
         return "No checkpoint data found."
 
 @tool
+# make it so this cannot be used twice in a row
 def save_checkpoint(query: str) -> str:
     """Use this when user/human asks you to save checkpoint. Do not use this unless asked to."""
     checkpoint_save_from = collection.find_one({"thread_id": "1"})

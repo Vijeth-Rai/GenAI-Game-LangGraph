@@ -1,3 +1,6 @@
+MongoDBSaver automatically saves and updates checkpoints. Also creates short and long memories 
+
+
 Progress:
 
 

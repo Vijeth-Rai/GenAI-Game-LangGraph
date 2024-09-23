@@ -1,7 +1,7 @@
 from agents.graph import *
 from utils.imports import *
 from configs.ConfigEnv import *
-from agents.MongoSaver import MongoDBSaver
+from configs.MongoSaver import MongoDBSaver
 
 config = {"configurable": {"thread_id": "1"}}
 
@@ -17,19 +17,11 @@ def main():
                 print("Goodbye!")
                 break
 
-            res = graph.stream({"messages": [("human", user_input)]}, config, stream_mode="values")
+            res = graph.stream({"messages": [HumanMessage(content=user_input)]}, config, stream_mode="values")
             for event in res:
-                if "messages" in event and not isinstance(event["messages"][-1], HumanMessage):
+                if "messages" in event and not isinstance(event["messages"][-1], HumanMessage) and event["next"] == "__end__":
                     print("Assistant: ", event["messages"][-1].content)
-
-
-                # if "messages" in event and not isinstance(event["messages"][-1], HumanMessage):
-                #     print("Assistant:", event["messages"][-1].content)
-                # if "short_memory" in event:
-                #     print("Short Memory:", event["short_memory"])
-                # if "long_memory" in event:
-                #     print("Long Memory:", event["long_memory"])
-                
+                    #break
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,11 @@ from utils.imports import *
 load_dotenv()
 
 groq_api_key = os.getenv("GROQ")
+llm_huge = ChatGroq(
+    groq_api_key=groq_api_key,
+    model_name="llama3-groq-70b-8192-tool-use-preview"
+)
+
 llm = ChatGroq(
     groq_api_key=groq_api_key,
     model_name="llama3-groq-8b-8192-tool-use-preview"
