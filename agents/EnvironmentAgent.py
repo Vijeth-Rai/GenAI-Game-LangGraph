@@ -13,6 +13,9 @@ from typing import Union
 class EnvDetected(BaseModel):
     is_detected: Literal["False", "True"] 
 
+class EnvDetected_v2(BaseModel):
+    name: str
+
 class EnvDescription(BaseModel):
     name: str
     description: str
@@ -42,11 +45,12 @@ class EnvironmentAgent:
         )
         status = self._setup_env_detector_chain(system_prompt, message)
 
-        if status.name != "False":
+        if status.is_detected == "True":
+            name = self._get_env_description_v2(message)
             matching_env = self.collection.find_one(
                 {
                     "thread_id": self.thread_id,
-                    "Environment.name": status.name
+                    "Environment.name": name
                 },
                 {"Environment.$": 1}
             )
@@ -79,6 +83,27 @@ class EnvironmentAgent:
             print(f"EnvironmentAgent: saved {name} to the database")
 
 
+    def _get_env_description_v2(self, message):
+        system_prompt = (
+            "You are environment/place description extractor."
+            "You are given a message from an AI and you will extract the name of the environment/place from the message."
+            f"Below is the message:\n {[message]}"
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_prompt),
+                MessagesPlaceholder(variable_name="messages"),
+            ]
+        )
+
+        env_detector_chain = (
+            prompt
+            | llm_huge.with_structured_output(EnvDetected_v2)
+        )
+
+        result = env_detector_chain.invoke({"messages": [message]})
+
+        return result.name
 
     def _setup_env_detector_chain(self, system_prompt, message):
         prompt = ChatPromptTemplate.from_messages(

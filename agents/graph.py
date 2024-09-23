@@ -27,7 +27,6 @@ def setup_graph():
     chatbot = ChatAgent(llm_with_tools)
     master_agent = GameMaster()
 
-    environment_node = functools.partial(agent_node, agent=environment_agent, name="Environment Agent")
     agent_nodes = ["EnvironmentAgent", "ChatAgent"]
 
     graph_builder = StateGraph(AgentState)
