@@ -47,11 +47,6 @@ class GameMaster:
             response = llm_tool_prompt.invoke(input_dict)
 
             state["messages"].append(response)
-           
-            
-
-
-
 
             if state.get("messages", [])[-1].tool_calls:
                 return {"next": "tools"}
@@ -88,6 +83,7 @@ class GameMaster:
 
 
     def _is_env(self, messages):
+        latest_message = messages[-1]
         system_prompt = (
             "You are an environment/place detector. "
             "You are given a message and you will determine if it contains the name of an environment/place or not. "
@@ -101,7 +97,7 @@ class GameMaster:
         prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system_prompt),
-                ("user", messages[0]),  # Assuming messages is a list with at least one message
+                ("user", messages[-1]),  
             ]
         )
 

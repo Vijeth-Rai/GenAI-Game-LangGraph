@@ -29,14 +29,14 @@ class EnvironmentAgent:
     def __call__(self, state: AgentState):
         messages = state.get("messages", [])
         if messages[-1].type == "human":
-            self._is_env_human(messages[-1].content)
+            self._is_env_human(state, messages[-1].content)
         elif messages[-1].type == "ai":
             self._is_env_ai(messages[-1].content)
 
 
     
         
-    def _is_env_human(self, message):        
+    def _is_env_human(self, state, message):        
         name = self._get_env_description_v2(message)
         matching_env = self.collection.find_one(
             {
@@ -47,21 +47,28 @@ class EnvironmentAgent:
         )
         
         if matching_env and "Environment" in matching_env:
-            print("EnvironmentAgent: Line 52: matching_env: ", matching_env["Environment"][0])
+            env_info = matching_env["Environment"][0]
+            new_message = f"Use this to be consistent about Environment/place: {env_info['name']} \n Description: {env_info['description']}\n Message: {message}"
+            # remove the last message from the state
+            state["messages"] = state["messages"][:-1]
+            state["messages"].append(HumanMessage(content=new_message))
+            #print(state["messages"])
+            return state
 
-            
-            #print("status.name: ", status.name)
-            #print("here")
 
 
     def _is_env_ai(self, message):
-        name, description = self._get_env_description(message)
-        print("EnvironmentAgent: Line 69: name, description: ", name, description)
-        self.collection.update_one(
-            {"thread_id": self.thread_id},
-            {"$push": {"Environment": {"name": name, "description": description}}}
-        )
-        print(f"EnvironmentAgent: saved {name} to the database")
+        name = self._get_env_description_v2(message)
+        if self.collection.find_one({"thread_id": self.thread_id, "Environment.name": name}):
+            pass
+        else:
+            name, description = self._get_env_description(message)
+            self.collection.update_one(
+                {"thread_id": self.thread_id},
+                {"$push": {"Environment": {"name": name, "description": description}}}
+            )
+            print(f"EnvironmentAgent: saved {name} to the database")
+
 
 
     def _get_env_description_v2(self, message):
