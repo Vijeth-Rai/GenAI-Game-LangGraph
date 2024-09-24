@@ -7,4 +7,4 @@ class AgentState(MessagesState):
     short_memory: str
     long_memory: str
     next: str
-
+    next_history: List[str]

@@ -4,20 +4,25 @@ from typing import List, Literal
 from configs.ConfigStates import *
 from utils.tools import load_checkpoint, save_checkpoint, end_convo
 
+config = {"configurable": {"thread_id": "1"}}
+
 class GameMaster:
     def __init__(self):
         self.tools = [load_checkpoint, save_checkpoint, end_convo]
         self.llm = llm_huge.bind_tools(self.tools)
+        self.thread_id = config["configurable"]["thread_id"]
         self.members = ["ChatAgent", "EnvironmentAgent"]
         self.options = ["FINISH"] + self.members
+        self.collection = collection
 
     def __call__(self, state: AgentState):
 
         print("MasterAgent.py Line 12 Called")
-        print(state.get("next", []))
+        if state.get("messages", [])[-1].type == "human":
+            self._update_next_history("END")
+
 
         if state.get("next", []) == []:
-            print("Checking Tools")
             system_prompt = (
                 f"You have access to the following tools: {self.tools}."
                 " You do not need extra information to use the tools."
@@ -39,16 +44,10 @@ class GameMaster:
                 ]
             }
             
-            # Use the dictionary as input to invoke
             response = llm_tool_prompt.invoke(input_dict)
 
-            # i want to see response and also the input for the llm
-            print(input_dict,"\n\n")
-            print(response,"\n\n")
             state["messages"].append(response)
-            
-            #print(state)
-            # remove most recent AIMesage
+           
             
 
 
@@ -61,8 +60,7 @@ class GameMaster:
                 state["messages"].pop()
 
         if state.get("next", []) == "tools":
-            print("Cleaning up after tools")
-            
+            self._update_next_history("ChatAgent")
             return {"next": END}
         
         
@@ -74,12 +72,15 @@ class GameMaster:
 
         status = self._is_env([message])
 
-        if status.answer == "True" and state.get("next", []) != "EnvironmentAgent":
+        if status.answer == "True" and state.get("next", []) != "EnvironmentAgent" and not self._in_next_histories("EnvironmentAgent"):
+            self._update_next_history("EnvironmentAgent")
             return {"next": "EnvironmentAgent"}
         
-        if state.get("next", []) != "ChatAgent":
+        if state.get("next", []) != "ChatAgent" and not self._in_next_histories("ChatAgent"):
+            self._update_next_history("ChatAgent")
             return {"next": "ChatAgent"}
         
+        self._update_next_history("END")
         return {"next": END}
 
 
@@ -89,7 +90,7 @@ class GameMaster:
     def _is_env(self, messages):
         system_prompt = (
             "You are an environment/place detector. "
-            "You are given a message and you will determine whether it involves an environment/place or not. "
+            "You are given a message and you will determine if it contains the name of an environment/place or not. "
             "You will always respond with either True or False"
             "Below is the message:\n"
         )
@@ -110,3 +111,20 @@ class GameMaster:
         )
 
         return env_detector_chain.invoke({"messages": messages})
+    
+
+    def _update_next_history(self, x):
+        if x == "END":
+            self.collection.update_one(
+                {"thread_id": self.thread_id},
+                {"$set": {"next_histories": []}}
+            )
+        else:
+            self.collection.update_one(
+                {"thread_id": self.thread_id},
+                {"$push": {"next_histories": {"$each": [x]}}}
+            )
+
+    def _in_next_histories(self, x):
+        next_histories = self.collection.find_one({"thread_id": self.thread_id})["next_histories"]
+        return x in next_histories
