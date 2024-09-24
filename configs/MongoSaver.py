@@ -99,7 +99,7 @@ class MongoDBSaver(BaseCheckpointSaver):
         
         try:
             #print(update_doc["messages"][-2]["type"] )
-            if update_doc["messages"][-2]["type"] == "tool":
+            if update_doc["messages"][-1]["type"] == "tool":
                 #print("True")
                 state = self.db["checkpoints"].find_one({"thread_id": "latest"})
                 if '_id' in state:

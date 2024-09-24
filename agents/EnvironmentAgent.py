@@ -24,9 +24,9 @@ class EnvironmentAgent:
     def __init__(self):
         self.collection = collection
         self.thread_id = "1"
-        self.llm = llm_huge
+        self.llm = llm
 
-    def invoke(self, state: AgentState):
+    def __call__(self, state: AgentState):
         messages = state.get("messages", [])
         if messages[-1].type == "human":
             self._is_env_human(messages[-1].content)
@@ -36,27 +36,18 @@ class EnvironmentAgent:
 
     
         
-    def _is_env_human(self, message):
-        system_prompt = (
-            "You are environment/place detector."
-            "You are given a message from a Human and you will determine whether the response to the human message might involve an environment/place or not."
-            "If the response might involves an environment/place, respond True. If the response does not involve an environment/place, respond False."
-            f"Below is the message:\n {message}"
+    def _is_env_human(self, message):        
+        name = self._get_env_description_v2(message)
+        matching_env = self.collection.find_one(
+            {
+                "thread_id": self.thread_id,
+                "Environment.name": name
+            },
+            {"Environment.$": 1}
         )
-        status = self._setup_env_detector_chain(system_prompt, message)
-
-        if status.is_detected == "True":
-            name = self._get_env_description_v2(message)
-            matching_env = self.collection.find_one(
-                {
-                    "thread_id": self.thread_id,
-                    "Environment.name": name
-                },
-                {"Environment.$": 1}
-            )
-            
-            if matching_env and "Environment" in matching_env:
-                print("EnvironmentAgent: Line 52: matching_env: ", matching_env["Environment"][0])
+        
+        if matching_env and "Environment" in matching_env:
+            print("EnvironmentAgent: Line 52: matching_env: ", matching_env["Environment"][0])
 
             
             #print("status.name: ", status.name)
@@ -64,29 +55,20 @@ class EnvironmentAgent:
 
 
     def _is_env_ai(self, message):
-        system_prompt = (
-            "You are environment/place detector."
-            "You are given a message from an AI and you will determine whether it involves an environment/place and its description or not."
-            "If the response might involves an environment/place, respond True. If the response does not involve an environment/place, respond False."
-            f"Below is the message:\n {[message]}"
+        name, description = self._get_env_description(message)
+        print("EnvironmentAgent: Line 69: name, description: ", name, description)
+        self.collection.update_one(
+            {"thread_id": self.thread_id},
+            {"$push": {"Environment": {"name": name, "description": description}}}
         )
-        status = self._setup_env_detector_chain(system_prompt, message)
-
-
-        if status.is_detected == "True":
-            name, description = self._get_env_description(message)
-            print("EnvironmentAgent: Line 69: name, description: ", name, description)
-            self.collection.update_one(
-                {"thread_id": self.thread_id},
-                {"$push": {"Environment": {"name": name, "description": description}}}
-            )
-            print(f"EnvironmentAgent: saved {name} to the database")
+        print(f"EnvironmentAgent: saved {name} to the database")
 
 
     def _get_env_description_v2(self, message):
         system_prompt = (
             "You are environment/place description extractor."
-            "You are given a message from an AI and you will extract the name of the environment/place from the message."
+            "You are given a message and you will extract the name of the environment/place from the message."
+            "You will respond with the name of the environment/place only."
             f"Below is the message:\n {[message]}"
         )
         prompt = ChatPromptTemplate.from_messages(

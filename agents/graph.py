@@ -21,18 +21,17 @@ def should_continue(state: MessagesState) -> Literal["tools", "Master"]:
 def setup_graph():
     tools = [load_checkpoint, save_checkpoint, end_convo]
     tool_node = ToolNode(tools)
-    llm_with_tools = llm_huge.bind_tools(tools)
 
     environment_agent = EnvironmentAgent()
-    chatbot = ChatAgent(llm_with_tools)
+    chatbot = ChatAgent() #type: ignore
     master_agent = GameMaster()
 
-    agent_nodes = ["EnvironmentAgent", "ChatAgent"]
+    agent_nodes = ["EnvironmentAgent", "ChatAgent", "tools"]
 
     graph_builder = StateGraph(AgentState)
 
     graph_builder.add_node("Master", master_agent)
-    graph_builder.add_node("EnvironmentAgent", environment_node)
+    graph_builder.add_node("EnvironmentAgent", environment_agent)
     graph_builder.add_node("ChatAgent", chatbot)
     graph_builder.add_node("tools", tool_node)
 
@@ -43,11 +42,9 @@ def setup_graph():
 
     graph_builder.add_conditional_edges("Master", lambda x: x["next"], conditional_map)
     for agent in agent_nodes:
-        if agent != "ChatAgent":
-            graph_builder.add_edge(agent, "Master")
+        graph_builder.add_edge(agent, "Master")
 
-    graph_builder.add_conditional_edges("ChatAgent", should_continue)
-    graph_builder.add_edge("tools", "ChatAgent")
+    
 
     # Debugging statements to trace state transitions
     

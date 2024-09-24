@@ -7,8 +7,8 @@ from main import config
 from agents.graph import *
 
 class ChatAgent:
-    def __init__(self, llm_with_tools):
-        self.llm = llm_with_tools
+    def __init__(self):
+        self.llm = llm
         self.collection = collection
         self.max_messages = 5
         self.thread_id = config["configurable"]["thread_id"]
