@@ -3,14 +3,20 @@ from utils.imports import *
 load_dotenv()
 
 groq_api_key = os.getenv("GROQ")
-llm_huge = ChatGroq(
+
+llm_huge_with_tools = ChatGroq(
     groq_api_key=groq_api_key,
     model_name="llama3-groq-70b-8192-tool-use-preview"
 )
 
+llm_huge = ChatGroq(
+    groq_api_key=groq_api_key,
+    model_name="gemma2-9b-it"
+)
+
 llm = ChatGroq(
     groq_api_key=groq_api_key,
-    model_name="llama3-groq-8b-8192-tool-use-preview"
+    model_name="gemma2-9b-it"
 )
 
 # Initialize MongoDB saver
