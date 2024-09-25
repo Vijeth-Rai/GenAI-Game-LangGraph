@@ -21,7 +21,7 @@ class CharDescription_extended(BaseModel):
     race: str
     gender: str
     backstory: str
-    appearence: str
+    description: str
 
 class CharacterAgent:
     def __init__(self):
@@ -44,13 +44,13 @@ class CharacterAgent:
             matching_char = self.collection.find_one(
                 {
                     "thread_id": self.thread_id,
-                    "Character.name": name
+                    "characters.name": name
                 },
-                {"Character.$": 1}
+                {"characters.$": 1}
             )
             
-            if matching_char and "Character" in matching_char:
-                char_info = matching_char["Character"][0]
+            if matching_char and "characters" in matching_char:
+                char_info = matching_char["characters"][0]
                 new_message += f"\nUse this to be consistent about Character/Person: {char_info['name']} \n Description: {char_info['description']}"
 
         state["messages"] = state["messages"][:-1]
@@ -66,21 +66,21 @@ class CharacterAgent:
             existing_character = self.collection.find_one({
                 "thread_id": self.thread_id,
                 "$or": [
-                    {"Character.name": {"$in": [char_info["name"]] + char_info["titles"]}},
-                    {"Character.titles": {"$in": [char_info["name"]] + char_info["titles"]}}
+                    {"characters.name": {"$in": [char_info["name"]] + char_info["titles"]}},
+                    {"characters.titles": {"$in": [char_info["name"]] + char_info["titles"]}}
                 ]
             })
 
             if existing_character:
-                existing_char = existing_character["Character"][0]
+                existing_char = existing_character["characters"][0]
                 
                 if existing_char["name"] == char_info["name"]:
                     # Condition 1: Name already exists
                     new_titles = list(set(existing_char["titles"] + char_info["titles"]))
                     if new_titles != existing_char["titles"]:
                         self.collection.update_one(
-                            {"thread_id": self.thread_id, "Character.name": existing_char["name"]},
-                            {"$set": {"Character.$.titles": new_titles}}
+                            {"thread_id": self.thread_id, "characters.name": existing_char["name"]},
+                            {"$set": {"characters.$.titles": new_titles}}
                         )
                         print(f"Updated titles for character '{existing_char['name']}'")
                     else:
@@ -92,14 +92,14 @@ class CharacterAgent:
                     merged_titles.remove(merged_name)
                     
                     self.collection.update_one(
-                        {"thread_id": self.thread_id, "Character.name": existing_char["name"]},
+                        {"thread_id": self.thread_id, "characters.name": existing_char["name"]},
                         {"$set": {
-                            "Character.$.name": merged_name,
-                            "Character.$.titles": merged_titles,
-                            "Character.$.race": char_info["race"],
-                            "Character.$.gender": char_info["gender"],
-                            "Character.$.backstory": char_info["backstory"],
-                            "Character.$.appearence": char_info["appearence"]
+                            "characters.$.name": merged_name,
+                            "characters.$.titles": merged_titles,
+                            "characters.$.race": char_info["race"],
+                            "characters.$.gender": char_info["gender"],
+                            "characters.$.backstory": char_info["backstory"],
+                            "characters.$.description": char_info["description"]
                         }}
                     )
                     print(f"Updated character '{merged_name}' with merged information.")
@@ -107,7 +107,7 @@ class CharacterAgent:
                 # No duplicates found, insert new character
                 self.collection.update_one(
                     {"thread_id": self.thread_id},
-                    {"$push": {"Character": char_info}}
+                    {"$push": {"characters": char_info}}
                 )
                 print(f"Inserted new character '{char_info['name']}' into the database.")
 
@@ -163,11 +163,12 @@ class CharacterAgent:
 
         system_prompt = (
             " You will be given name and description of a character/person."
-            " You will extract name, titles, race, gender, backstory and appearence of the character/person from the description."
+            " You will extract name, titles, race, gender, backstory and description of the character/person from the description."
             " Titles: Extract any specific titles or unique designations the character/person is known by (e.g., 'The Brave,' 'King of the North'). Exclude professions or roles like 'comedian' or 'swordsman,' unless they are used as a unique designation."
             " In the case where the description does not provide all the information needed, you will use your best judgement to fill in the missing information."
-            " You will respond with the name, titles, race, gender, backstory and appearence of the character/person."
-            " The format of your response should be as follows: Name: <name>, Titles: <titles>, Race: <race>, Gender: <gender>, Backstory: <backstory>, Appearence: <appearence>"
+            " You will respond with the name, titles, race, gender, backstory and description of the character/person."
+            " The format of your response should be as follows: Name: <name>, Titles: <titles>, Race: <race>, Gender: <gender>, Backstory: <backstory>, Description: <description>"
+            " The Description should be a detailed description of the character/person, including their physical appearance, mannerisms, and any other distinguishing features."
             f" Below is the name and description of the character/person:\n Name: {name}\n Description: {description}"
         )
 
@@ -195,7 +196,7 @@ class CharacterAgent:
             "race": result.race,
             "gender": result.gender,
             "backstory": result.backstory,
-            "appearence": result.appearence
+            "description": result.description
         }
 
     def _clean_name(self, name):
