@@ -19,7 +19,7 @@ from utils.tools import *
 groq_api_key = os.getenv("GROQ")
 llm = ChatGroq(
     groq_api_key=groq_api_key,
-    model_name="llama3-groq-8b-8192-tool-use-preview"
+    model_name="llama3-groq-8b-8192"
 )
 
 class MongoDBSaver(BaseCheckpointSaver):
