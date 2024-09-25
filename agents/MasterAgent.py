@@ -10,7 +10,7 @@ config = {"configurable": {"thread_id": "1"}}
 class GameMaster:
     def __init__(self):
         self.tools = [load_checkpoint, save_checkpoint, end_convo]
-        self.llm = llm_huge.bind_tools(self.tools)
+        self.llm = llm_huge_with_tools.bind_tools(self.tools)
         self.thread_id = config["configurable"]["thread_id"]
         self.members = ["ChatAgent", "EnvironmentAgent"]
         self.options = ["FINISH"] + self.members
@@ -18,7 +18,9 @@ class GameMaster:
 
     def __call__(self, state: AgentState):
 
+        print(state.get("next", []))
         #print("MasterAgent.py Line 12 Called")
+
         if state.get("messages", [])[-1].type == "human":
             self._update_next_history("END")
 
@@ -79,9 +81,14 @@ class GameMaster:
                         return {"next": "EnvironmentAgent"}
                 elif future == future_char:
                     status_char = future.result()
-                    if status_char.answer == "True" and state.get("next", []) != "CharacterAgent" and not self._in_next_histories("CharacterAgent"):
+                    if status_char.answer == "True" and state.get("next", []) != "CharacterAgent" and state.get("next", []) != "StatsAgent" and not self._in_next_histories("CharacterAgent"):
                         self._update_next_history("CharacterAgent")
                         return {"next": "CharacterAgent"}
+
+        if state.get("next", []) != "StatsAgent" and state.get("next", []) == "CharacterAgent" and not self._in_next_histories("StatsAgent"):
+            self._update_next_history("StatsAgent")
+            #print("StatsAgent added to next_histories")
+            return {"next": "StatsAgent"}
 
         if state.get("next", []) != "ChatAgent" and not self._in_next_histories("ChatAgent"):
             self._update_next_history("ChatAgent")
