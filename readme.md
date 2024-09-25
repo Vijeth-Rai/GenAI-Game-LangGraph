@@ -8,3 +8,7 @@ GameMaster can decide to save checkpoints and load to previous checkpoints based
 
 EnvironmentAgent is responsible for creating environment memories
 
+CharacterAgent is responsible for storing character details
+
+StatsAgent is responsible for storing stats for characters
+
