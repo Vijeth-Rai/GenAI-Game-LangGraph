@@ -8,7 +8,7 @@ config = {"configurable": {"thread_id": "1"}}
 def main():
     with MongoDBSaver.from_conn_info(host=host, port=27017, db_name="checkpoints") as checkpointer:
         graph = setup_graph()
-        graph = graph.compile(checkpointer=checkpointer)
+        app = graph.compile(checkpointer=checkpointer)
         config = {"configurable": {"thread_id": "1"}}
 
         while True:
@@ -17,11 +17,13 @@ def main():
                 print("Goodbye!")
                 break
 
-            res = graph.stream({"messages": [HumanMessage(content=user_input)]}, config, stream_mode="values")
-            for event in res:
-                if "messages" in event and not isinstance(event["messages"][-1], HumanMessage) and event["next"] == "__end__":
-                    print("Assistant: ", event["messages"][-1].content)
+            for step in app.stream({"messages": [HumanMessage(content=user_input)]}, config):
+                #print(step)
+                if "messages" in step and not isinstance(step["messages"][-1], HumanMessage) and step["next"] == "__end__":
+                    print("Assistant: ", step["messages"][-1].content)
                     #break
+
+
 
 if __name__ == "__main__":
     main()

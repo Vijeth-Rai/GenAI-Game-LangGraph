@@ -67,7 +67,7 @@ class EnvironmentAgent:
                 {"thread_id": self.thread_id},
                 {"$push": {"Environment": {"name": name, "description": description}}}
             )
-            print(f"EnvironmentAgent: saved {name} to the database")
+            #print(f"EnvironmentAgent: saved {name} to the database")
 
 
 

@@ -13,7 +13,7 @@ class Chatbot:
         self.max_messages = 5
         self.thread_id = config["configurable"]["thread_id"]
         self.return_data = {}
-        print("initialized chatbot")
+        #print("initialized chatbot")
 
     def __call__(self, state: AgentState):
         state = self._load_checkpoint(state)
