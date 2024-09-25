@@ -4,10 +4,6 @@ from configs.ConfigEnv import *
 
 config = {"configurable": {"thread_id": 1}}
 
-llm = ChatGroq(
-    groq_api_key=groq_api_key,
-    model_name="llama3-groq-70b-8192-tool-use-preview"
-)
 
 @tool
 def load_checkpoint(query: str) -> AgentState:
