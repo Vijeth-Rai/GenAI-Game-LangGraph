@@ -6,18 +6,7 @@ import functools
 from langgraph.prebuilt import ToolNode
 from utils.tools import load_checkpoint, save_checkpoint, end_convo
 from utils.agent_node import *
-
-# def should_continue(state: MessagesState) -> Literal["tools", "Master"]:
-#     messages = state['messages']
-    
-#     last_message = messages[-1]
-    
-#     if isinstance(last_message, AIMessage):
-#         if last_message.tool_calls:
-#             print("tool call used")
-#             return "tools"
-   
-#     return "Master"
+from agents.StatsAgent import *
 
 def setup_graph():
     tools = [load_checkpoint, save_checkpoint, end_convo]
@@ -25,9 +14,10 @@ def setup_graph():
 
     environment_agent = EnvironmentAgent()
     chatbot = ChatAgent() #type: ignore
+    stats_agent = StatsAgent()
     master_agent = GameMaster()
     character_agent = CharacterAgent()
-    agent_nodes = ["SLE_Tools", "EnvironmentAgent", "CharacterAgent", "ChatAgent"]
+    agent_nodes = ["SLE_Tools", "EnvironmentAgent", "CharacterAgent", "StatsAgent", "ChatAgent"]
 
     graph_builder = StateGraph(AgentState)
 
@@ -36,7 +26,10 @@ def setup_graph():
     graph_builder.add_node("ChatAgent", chatbot)
     graph_builder.add_node("SLE_Tools", tool_node)
     graph_builder.add_node("CharacterAgent", character_agent)
-    graph_builder.add_edge(START, "Master")
+    graph_builder.add_node("StatsAgent", stats_agent)
+
+    
+    graph_builder.set_entry_point("Master")
     
     conditional_map = {k: k for k in agent_nodes}
     conditional_map[END] = END
