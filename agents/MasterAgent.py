@@ -18,7 +18,7 @@ class GameMaster:
 
     def __call__(self, state: AgentState):
 
-        print(state.get("next", []))
+        #print(state.get("next", []))
         #print("MasterAgent.py Line 12 Called")
 
         if state.get("messages", [])[-1].type == "human":

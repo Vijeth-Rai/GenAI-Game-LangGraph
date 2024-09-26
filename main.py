@@ -16,12 +16,24 @@ def main():
             if user_input.lower() in ["quit", "exit", "q"]:
                 print("Goodbye!")
                 break
+            
+            state_name = "__start__"
+            next_step = "Master"
+            print(f"Current State: {state_name} | Next Step: {next_step}")
+            for step in app.stream({"messages": [HumanMessage(content=user_input)]}, config, stream_mode="updates"):
+                try:
+                    state_name = list(step.keys())[0]
+                    next_step = step[state_name].get('next', 'Master')
+                except:
+                    state_name = next_step
+                    next_step = "Master"
+                
+                print(f"Current State: {state_name} | Next Step: {next_step}")
+                
 
-            for step in app.stream({"messages": [HumanMessage(content=user_input)]}, config):
-                #print(step)
-                if "messages" in step and not isinstance(step["messages"][-1], HumanMessage) and step["next"] == "__end__":
-                    print("Assistant: ", step["messages"][-1].content)
-                    #break
+                if state_name == "ChatAgent":
+                    
+                    print("Assistant: ", step["ChatAgent"]["messages"][-1].content)
 
 
 
