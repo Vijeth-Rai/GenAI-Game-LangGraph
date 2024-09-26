@@ -1,0 +1,49 @@
+.status-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 15px;
+  }
+  
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .status-dot.alive {
+    background-color: #4CAF50;
+  }
+  
+  .status-dot.dead {
+    background-color: #F44336;
+  }
+  
+  .status-dot.unknown {
+    background-color: #FFC107;
+  }
+  
+  .status-text {
+    margin-right: 10px;
+  }
+  
+  button {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  button:hover {
+    background-color: #1976D2;
+  }

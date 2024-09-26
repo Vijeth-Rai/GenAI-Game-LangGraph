@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Chat from './components/Chat';
+import StateVisualizer from './components/StateVisualizer';
+import StatusIndicator from './components/StatusIndicator';
 import './App.css';
 
 function App() {
+  const [currentState, setCurrentState] = useState('');
+  const [nextState, setNextState] = useState('');
+
+  const updateStates = (current, next) => {
+    setCurrentState(current);
+    setNextState(next);
+  };
+
   return (
     <div className="App">
+      <StatusIndicator />
       <div className="left-side">
-        {/* You can add content for the left side here */}
+        <StateVisualizer currentState={currentState} nextState={nextState} />
       </div>
-      <Chat />
+      <Chat updateStates={updateStates} />
     </div>
   );
 }
