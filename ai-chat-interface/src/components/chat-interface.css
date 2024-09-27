@@ -15,6 +15,7 @@
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 1rem;
   overflow: hidden;
+  position: relative; /* Add this line */
 }
 
 .left-panel {
@@ -251,4 +252,19 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* Add these new styles */
+.python-status-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background-color: #2e3333;
+  transition: background-color 0.3s ease;
+}
+
+.python-status-indicator.running {
+  background-color: #4ade80; /* Light green color */
 }

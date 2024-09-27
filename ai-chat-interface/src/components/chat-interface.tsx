@@ -36,6 +36,7 @@ export function ChatInterfaceComponent() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [isPythonRunning, setIsPythonRunning] = useState(false);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '' || isLoading) return;
@@ -45,6 +46,7 @@ export function ChatInterfaceComponent() {
     setInputMessage('');
     setIsLoading(true);
     setCurrentState('Thinking');
+    setIsPythonRunning(true); // Set Python as running when sending a message
 
     try {
       const response = await fetch('/api/python-script', {
@@ -104,6 +106,7 @@ export function ChatInterfaceComponent() {
 
     setIsLoading(false);
     setCurrentState('Idle');
+    setIsPythonRunning(false); // Set Python as not running when the response is complete
   }
 
   const handleDeleteCollection = async () => {
@@ -262,6 +265,7 @@ export function ChatInterfaceComponent() {
             </div>
           )}
         </div>
+        <div className={`python-status-indicator ${isPythonRunning ? 'running' : ''}`}></div>
         <div className="chat-window">
           <div className="chat-messages">
             <ScrollArea className="h-full p-6" ref={scrollAreaRef}>
