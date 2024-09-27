@@ -27,21 +27,34 @@ export function ChatInterfaceComponent() {
   }, [messages])
 
   const handleSendMessage = async () => {
-    if (inputMessage.trim() === '' || isLoading) return
+    if (inputMessage.trim() === '' || isLoading) return;
 
-    const newMessage: Message = { text: inputMessage, sender: 'user' }
-    setMessages((prevMessages) => [...prevMessages, newMessage])
-    setInputMessage('')
-    setIsLoading(true)
-    setCurrentState('Processing')
+    const newMessage: Message = { text: inputMessage, sender: 'user' };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+    setCurrentState('Processing');
 
-    // Simulating AI response
-    setTimeout(() => {
-      const aiResponse: Message = { text: 'This is a simulated AI response.', sender: 'ai' }
-      setMessages((prevMessages) => [...prevMessages, aiResponse])
-      setIsLoading(false)
-      setCurrentState('Idle')
-    }, 2000)
+    try {
+      const response = await fetch('/api/python-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: inputMessage }),
+      });
+
+      if (response.ok) {
+        console.log('Python script executed successfully');
+      } else {
+        console.error('Failed to execute Python script');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+
+    setIsLoading(false);
+    setCurrentState('Idle');
   }
 
   return (
