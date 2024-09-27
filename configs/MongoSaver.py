@@ -140,13 +140,13 @@ class MongoDBSaver(BaseCheckpointSaver):
     def _create_short_memory(self, messages) -> str:
         summary_prompt = f"Note down important details from the conversation below:\n\n{messages}"
         response = self.llm.invoke(summary_prompt).content
-        print("Short memory created successfully.")
+        # print("Short memory created successfully.")
         return response
 
     def _update_long_memory(self, short_memory: str, long_memory: str) -> str:
         update_prompt = f"Current long-term memory: {long_memory}\n\nNew information: {short_memory}\n\nUpdate the long-term memory to include the new information concisely."
         response = self.llm.invoke(update_prompt).content
-        print("Long memory updated successfully.")
+        # print("Long memory updated successfully.")
         return response
 
     def put_writes(self, config: RunnableConfig, writes: Sequence[Tuple[str, Any]], task_id: str,) -> None:

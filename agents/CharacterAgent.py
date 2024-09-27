@@ -109,7 +109,7 @@ class CharacterAgent:
                     {"thread_id": self.thread_id},
                     {"$push": {"characters": char_info}}
                 )
-                print(f"Inserted new character '{char_info['name']}' into the database.")
+                #print(f"Inserted new character '{char_info['name']}' into the database.")
 
     def _get_char_descriptions_v2(self, message):
         system_prompt = (

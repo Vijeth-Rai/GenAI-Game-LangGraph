@@ -3,7 +3,7 @@ from utils.imports import *
 from configs.ConfigEnv import *
 from configs.MongoSaver import MongoDBSaver
 import sys
-
+import time
 config = {"configurable": {"thread_id": "1"}}
 
 def main():
@@ -37,7 +37,13 @@ def main():
 
             
             print(message)
+            time.sleep(2)
             sys.stdout.flush()
 
+        print("Master")
+        print("__end__")
+        print("wait")
+        sys.stdout.flush()
+        
 if __name__ == "__main__":
     main()

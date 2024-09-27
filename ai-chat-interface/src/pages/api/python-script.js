@@ -19,8 +19,9 @@ export default function handler(req, res) {
     pythonProcess.stdin.end();
 
     pythonProcess.stdout.on('data', (data) => {
-      console.log('Sending stdout data:', data.toString());
+      // console.log("script",data.toString());
       res.write(data);
+      res.flush();
       // console.log('Sending stdout data:', data.toString());
 
     });
@@ -28,6 +29,7 @@ export default function handler(req, res) {
     pythonProcess.stderr.on('data', (data) => {
       // console.log('Sending stderr data:', data.toString());
       res.write(`data: error: ${data}\n\n`);
+      res.end(); // End the response after writing error
     });
 
     pythonProcess.on('close', (code) => {

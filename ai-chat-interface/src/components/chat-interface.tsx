@@ -13,17 +13,22 @@ type Message = {
   sender: 'user' | 'ai'
 }
 
+type StateInfo = {
+  current: string
+  next: string
+}
+
 export function ChatInterfaceComponent() {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [currentState, setCurrentState] = useState('Idle')
+  const [stateInfo, setStateInfo] = useState<StateInfo>({ current: '', next: '' })
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '' || isLoading) return;
 
-    console.log('Sending message:', inputMessage);
     const newMessage: Message = { text: inputMessage, sender: 'user' };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setInputMessage('');
@@ -31,31 +36,53 @@ export function ChatInterfaceComponent() {
     setCurrentState('Thinking');
 
     try {
-      console.log('Sending POST request to /api/python-script');
       const response = await fetch('/api/python-script', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        
         body: JSON.stringify({ message: inputMessage }),
       });
-      console.log('API response status:', response.status);
-      
-      const responseBody = await response.text();
-      console.log('API response body:', responseBody);
 
-      // Process the response as sets of 3
-      const responseLines = responseBody.split('\n');
-      for (let i = 0; i < responseLines.length; i += 3) {
-        const message = responseLines[i + 2];
-        if (message && message !== 'wait') {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { text: message, sender: 'ai' }
-          ]);
+      console.log(response)
+      
+      if (response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let partialMessage = '';
+        let lineCount = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          partialMessage += decoder.decode(value, { stream: true });
+          
+          const responseLines = partialMessage.split('\n');
+          while (responseLines.length >= 3) {
+            const current = responseLines.shift();
+            const next = responseLines.shift();
+            const message = responseLines.shift();
+
+            if (current && next) {
+              setStateInfo({ current, next });
+            }
+
+            if (message && message !== 'wait') {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                { text: message, sender: 'ai' }
+              ]);
+            }
+
+            lineCount++;
+            if (lineCount % 3 === 0) {
+              partialMessage = responseLines.join('\n');
+            }
+          }
         }
       }
-
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages((prevMessages) => [
@@ -70,6 +97,10 @@ export function ChatInterfaceComponent() {
 
   return (
     <div className="chat-container">
+      <div className="state-info">
+        <h2>Current State: {stateInfo.current}</h2>
+        <h2>Next State: {stateInfo.next}</h2>
+      </div>
       <div className="chat-window">
         <div className="chat-messages">
           <ScrollArea className="h-full p-6" ref={scrollAreaRef}>
@@ -103,11 +134,11 @@ export function ChatInterfaceComponent() {
               />
             </div>
             <Button
-              onClick={handleSendMessage}
               className="chat-send-button"
+              onClick={handleSendMessage}
               disabled={isLoading}
             >
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4" />
             </Button>
           </div>
         </div>
