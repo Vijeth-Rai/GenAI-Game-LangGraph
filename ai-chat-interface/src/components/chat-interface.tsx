@@ -31,8 +31,11 @@ export function ChatInterfaceComponent() {
   const [stateInfo, setStateInfo] = useState<StateInfo>({ current: '', next: '' })
   const [documents, setDocuments] = useState<Document[]>([])
   const [showDocuments, setShowDocuments] = useState(false)
+  const [showUnsavedDocuments, setShowUnsavedDocuments] = useState(false)
+  const [showSavedDocuments, setShowSavedDocuments] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '' || isLoading) return;
@@ -126,7 +129,7 @@ export function ChatInterfaceComponent() {
     }
   }
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (threadId: string) => {
     setIsLoadingDocuments(true)
     try {
       const response = await fetch('/api/get-documents', {
@@ -134,7 +137,11 @@ export function ChatInterfaceComponent() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ database: 'checkpoints', collection: 'checkpoints' }),
+        body: JSON.stringify({ 
+          database: 'checkpoints', 
+          collection: 'checkpoints',
+          threadId: threadId
+        }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -150,19 +157,43 @@ export function ChatInterfaceComponent() {
     }
   }
 
-  useEffect(() => {
-    if (showDocuments) {
-      fetchDocuments();
+  const refreshDocuments = async () => {
+    if (showUnsavedDocuments) {
+      await fetchDocuments('1');
+    } else if (showSavedDocuments) {
+      await fetchDocuments('latest');
     }
-  }, [showDocuments]);
+  }
+
+  useEffect(() => {
+    if (showUnsavedDocuments) {
+      fetchDocuments('1');
+    } else if (showSavedDocuments) {
+      fetchDocuments('latest');
+    }
+  }, [showUnsavedDocuments, showSavedDocuments]);
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   return (
     <div className="page-container">
       <div className="chat-container">
         <div className="left-panel">
           <div className="state-info">
-            <h2>Current State: {stateInfo.current}</h2>
-            <h2>Next State: {stateInfo.next}</h2>
+            <div className="state-item">
+              <span className="state-label">Current State:</span>
+              <span className="state-value">{stateInfo.current}</span>
+            </div>
+            <div className="state-item">
+              <span className="state-label">Next State:</span>
+              <span className="state-value">{stateInfo.next}</span>
+            </div>
           </div>
           <div className="database-controls">
             <Button
@@ -173,28 +204,45 @@ export function ChatInterfaceComponent() {
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Collection
             </Button>
-            <Button
-              className="view-documents-button"
-              onClick={() => setShowDocuments(!showDocuments)}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {showDocuments ? 'Hide Documents' : 'View Documents'}
-            </Button>
-            {showDocuments && (
+            <div className="view-buttons-container">
+              <Button
+                className={`view-checkpoints-button ${showUnsavedDocuments ? 'active' : ''}`}
+                onClick={() => {
+                  setShowUnsavedDocuments(!showUnsavedDocuments);
+                  setShowSavedDocuments(false);
+                }}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {showUnsavedDocuments ? 'Hide Checkpoints' : 'View Checkpoints'}
+              </Button>
+              <Button
+                className={`view-documents-button ${showSavedDocuments ? 'active' : ''}`}
+                onClick={() => {
+                  setShowSavedDocuments(!showSavedDocuments);
+                  setShowUnsavedDocuments(false);
+                }}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {showSavedDocuments ? 'Hide Documents' : 'View Documents'}
+              </Button>
+            </div>
+            {(showUnsavedDocuments || showSavedDocuments) && (
               <Button
                 className="refresh-documents-button"
-                onClick={fetchDocuments}
+                onClick={refreshDocuments}
                 disabled={isLoadingDocuments}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingDocuments ? 'animate-spin' : ''}`} />
-                Refresh
+                Refresh Documents
               </Button>
             )}
           </div>
-          {showDocuments && (
+          {(showUnsavedDocuments || showSavedDocuments) && (
             <div className="documents-view">
-              <h3 className="text-lg font-semibold mb-2">Documents in checkpoints collection:</h3>
-              <ScrollArea className="documents-scroll-area">
+              <h3 className="text-lg font-semibold mb-2">
+                {showUnsavedDocuments ? 'Checkpoints' : 'Documents'}
+              </h3>
+              <div className="documents-scroll-area">
                 {isLoadingDocuments ? (
                   <div className="flex justify-center items-center h-full">
                     <LoadingCircleComponent state="Loading" />
@@ -210,7 +258,7 @@ export function ChatInterfaceComponent() {
                 ) : (
                   <div className="text-center text-gray-500 dark:text-gray-400">No documents found</div>
                 )}
-              </ScrollArea>
+              </div>
             </div>
           )}
         </div>
@@ -227,6 +275,7 @@ export function ChatInterfaceComponent() {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} /> {/* Add this line */}
             </ScrollArea>
           </div>
           <div className="chat-input-area">

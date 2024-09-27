@@ -24,15 +24,46 @@
   padding: 1.5rem;
   color: #d1d5db;
   border-right: 1px solid #2e3333;
+  overflow: hidden; /* Add this line */
 }
 
 .state-info {
   width: 100%;
   margin-bottom: 1rem;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(30, 41, 59, 0.8);
   border-radius: 0.5rem;
-  border: 1px solid #2e3333;
+  border: 1px solid #3f4e63;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.state-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: rgba(51, 65, 85, 0.5);
+  border-radius: 0.25rem;
+}
+
+.state-label {
+  font-weight: 600;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.state-value {
+  font-weight: 500;
+  color: #e2e8f0;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(51, 65, 85, 0.8);
+  border-radius: 0.25rem;
+  min-width: 100px;
+  text-align: center;
 }
 
 .database-controls {
@@ -47,10 +78,35 @@
   width: 100%;
 }
 
+.view-buttons-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-buttons-container button {
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.view-buttons-container button.active {
+  background-color: #3b82f6; /* Bright blue color for active state */
+  color: white;
+}
+
+.view-buttons-container button:hover {
+  background-color: #2563eb; /* Darker blue on hover */
+}
+
+.view-buttons-container button.active:hover {
+  background-color: #1d4ed8; /* Even darker blue on hover for active state */
+}
+
 .documents-view {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* Add this line */
 }
 
 .documents-scroll-area {
@@ -59,20 +115,46 @@
   border-radius: 0.5rem;
   background-color: rgba(0, 0, 0, 0.3);
   padding: 1rem;
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100% - 3rem); /* Subtract the height of the title */
 }
 
 .document-item {
   margin-bottom: 1rem;
-  padding: 0.5rem;
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.document-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.document-id {
+  margin-left: 0.5rem;
+  font-weight: bold;
+}
+
+.document-preview {
+  padding: 0.5rem;
+}
+
+.document-preview-item {
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
 }
 
 .document-content {
+  padding: 0.5rem;
   font-family: monospace;
   font-size: 0.8rem;
   white-space: pre-wrap;
   word-break: break-all;
+  overflow-x: auto;
 }
 
 .chat-window {

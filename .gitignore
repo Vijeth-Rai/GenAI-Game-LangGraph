@@ -3,4 +3,4 @@ __pycache__
 *.ipynb
 tester.py
 comments.py
-node_modules/
+node_modules
