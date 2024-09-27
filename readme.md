@@ -1,5 +1,8 @@
 # AI-Powered Interactive Storytelling Game
 
+![Game Screenshot](ss.png)
+
+
 ## Project Overview
 
 This project is an innovative AI-powered interactive storytelling game that combines natural language processing, dynamic game state management, and intelligent character interactions. Players engage in a rich, evolving narrative experience guided by an AI GameMaster.
