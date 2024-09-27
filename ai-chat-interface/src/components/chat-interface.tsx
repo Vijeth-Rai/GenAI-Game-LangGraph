@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,22 +20,18 @@ export function ChatInterfaceComponent() {
   const [currentState, setCurrentState] = useState('Idle')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
-    }
-  }, [messages])
-
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '' || isLoading) return;
 
+    console.log('Sending message:', inputMessage);
     const newMessage: Message = { text: inputMessage, sender: 'user' };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setInputMessage('');
     setIsLoading(true);
-    setCurrentState('Processing');
+    setCurrentState('Thinking');
 
     try {
+      console.log('Sending POST request to /api/python-script');
       const response = await fetch('/api/python-script', {
         method: 'POST',
         headers: {
@@ -43,14 +39,29 @@ export function ChatInterfaceComponent() {
         },
         body: JSON.stringify({ message: inputMessage }),
       });
+      console.log('API response status:', response.status);
+      
+      const responseBody = await response.text();
+      console.log('API response body:', responseBody);
 
-      if (response.ok) {
-        console.log('Python script executed successfully');
-      } else {
-        console.error('Failed to execute Python script');
+      // Process the response as sets of 3
+      const responseLines = responseBody.split('\n');
+      for (let i = 0; i < responseLines.length; i += 3) {
+        const message = responseLines[i + 2];
+        if (message && message !== 'wait') {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { text: message, sender: 'ai' }
+          ]);
+        }
       }
+
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error sending message:', error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: "Sorry, there was an error processing your request.", sender: 'ai' }
+      ]);
     }
 
     setIsLoading(false);

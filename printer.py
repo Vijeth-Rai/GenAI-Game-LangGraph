@@ -16,8 +16,11 @@ def main():
         
         state_name = "__start__"
         next_step = "Master"
-        #print(f"Current State: {state_name} | Next Step: {next_step}")
+
         for step in app.stream({"messages": [HumanMessage(content=user_input)]}, config, stream_mode="updates"):
+            print(state_name)
+            print(next_step)
+            
             try:
                 state_name = list(step.keys())[0]
                 next_step = step[state_name].get('next', 'Master')
@@ -25,14 +28,16 @@ def main():
                 state_name = next_step
                 next_step = "Master"
             
-            print(state_name)
-            print(next_step)
-            
             if state_name == "ChatAgent":
-                print(step["ChatAgent"]["messages"][-1].content)
+                message = step["ChatAgent"]["messages"][-1].content
+                message = message.replace("\n", "\n\n\n")
             else:
-                print("wait")
+                message = "wait"
 
-        sys.stdout.flush()
+
+            
+            print(message)
+            sys.stdout.flush()
+
 if __name__ == "__main__":
     main()
