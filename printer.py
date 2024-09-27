@@ -37,7 +37,7 @@ def main():
 
             
             print(message)
-            time.sleep(2)
+            #time.sleep(2)
             sys.stdout.flush()
 
         print("Master")
