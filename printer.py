@@ -28,14 +28,15 @@ def main():
                     state_name = next_step
                     next_step = "Master"
                 
-                print(f"Current State: {state_name} | Next Step: {next_step}")
+                print(state_name)
+                print(next_step)
                 
 
                 if state_name == "ChatAgent":
-                    
-                    print("Assistant: ", step["ChatAgent"]["messages"][-1].content)
+                    print(step["ChatAgent"]["messages"][-1].content)
 
-
+                else:
+                    print("wait")
 
 if __name__ == "__main__":
     main()
