@@ -46,7 +46,7 @@ export function ChatInterfaceComponent() {
     setInputMessage('');
     setIsLoading(true);
     setCurrentState('Thinking');
-    setIsPythonRunning(true); // Set Python as running when sending a message
+    setIsPythonRunning(true); 
 
     try {
       const response = await fetch('/api/python-script', {
